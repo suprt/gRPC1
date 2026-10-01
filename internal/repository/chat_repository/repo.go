@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/suprt/gRPC1/internal/model"
 )
 
 type Repo struct {
@@ -35,6 +37,9 @@ func (r *Repo) Create(ctx context.Context, usernames []string) (int64, error) {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if len(usernames) == 0 {
+		return 0, model.ErrEmptyUsernames
+	}
 	r.idCounter++
 	id := r.idCounter
 	r.chats[id] = &chat{
@@ -49,6 +54,9 @@ func (r *Repo) Delete(ctx context.Context, id int64) error {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if _, ok := r.chats[id]; !ok {
+		return model.ErrChatNotFound
+	}
 	delete(r.chats, id)
 	return nil
 }
@@ -58,6 +66,9 @@ func (r *Repo) SendMessage(ctx context.Context, from, text string, id int64, tim
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if _, ok := r.chats[id]; !ok {
+		return model.ErrChatNotFound
+	}
 	r.chats[id].messages = append(r.chats[id].messages, message{from: from, text: text, timestamp: timestamp})
 	return nil
 }

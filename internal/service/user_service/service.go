@@ -32,11 +32,21 @@ func (s *Service) Create(ctx context.Context, name, email, password, passwordCon
 	if password != passwordConfirm {
 		return 0, model.ErrPasswordMatch
 	}
+	if name == "" {
+		return 0, model.ErrEmptyName
+	}
+	if email == "" {
+		return 0, model.ErrEmptyEmail
+	}
+	if password == "" {
+		return 0, model.ErrEmptyPassword
+	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
 	}
-	return s.repository.Create(ctx, name, email, string(hash), role, time.Now(), time.Now())
+	now := time.Now()
+	return s.repository.Create(ctx, name, email, string(hash), role, now, now)
 }
 
 func (s *Service) Get(ctx context.Context, id int64) (model.UserGetResponse, error) {
@@ -50,6 +60,7 @@ func (s *Service) Update(ctx context.Context, id int64, name, email *string) err
 	if email != nil && *email == "" {
 		return model.ErrEmptyEmail
 	}
+
 	return s.repository.Update(ctx, id, name, email, time.Now())
 }
 

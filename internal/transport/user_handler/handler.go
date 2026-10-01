@@ -83,6 +83,7 @@ func toStatus(err error) error {
 		errors.Is(err, model.ErrEmptyEmail),
 		errors.Is(err, model.ErrPasswordMatch),
 		errors.Is(err, model.ErrPasswordSpace),
+		errors.Is(err, model.ErrEmptyPassword),
 		errors.Is(err, model.ErrUserNotFound):
 		return status.Error(codes.InvalidArgument, err.Error())
 	default:

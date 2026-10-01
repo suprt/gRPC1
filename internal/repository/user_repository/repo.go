@@ -3,7 +3,6 @@ package user_repository
 import (
 	"context"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/suprt/gRPC1/internal/model"
@@ -21,7 +20,7 @@ type user struct {
 type Repo struct {
 	mu        sync.RWMutex
 	users     map[int64]*user
-	idCounter atomic.Int64
+	idCounter int64
 }
 
 func New() *Repo {
@@ -36,7 +35,8 @@ func (r *Repo) Create(ctx context.Context, name, email, password, role string, c
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	id := r.idCounter.Add(1)
+	r.idCounter++
+	id := r.idCounter
 	r.users[id] = &user{
 		name:      name,
 		email:     email,

@@ -1,4 +1,4 @@
-package user_server
+package user_handler
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	ts "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type Server struct {
+type Handler struct {
 	pb.UnimplementedUserAPIServer
 	service UserService
 }
@@ -24,12 +24,12 @@ type UserService interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-func New(service UserService) *Server {
-	return &Server{service: service}
+func New(service UserService) *Handler {
+	return &Handler{service: service}
 }
 
-func (s *Server) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateResponse, error) {
-	id, err := s.service.Create(ctx, req.GetName(), req.GetEmail(), req.GetPassword(), req.GetPasswordConfirm(), req.GetRole().String())
+func (h *Handler) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateResponse, error) {
+	id, err := h.service.Create(ctx, req.GetName(), req.GetEmail(), req.GetPassword(), req.GetPasswordConfirm(), req.GetRole().String())
 	if err != nil {
 		return nil, toStatus(err)
 	}
@@ -38,8 +38,8 @@ func (s *Server) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateR
 	return &response, nil
 }
 
-func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
-	tempResponse, err := s.service.Get(ctx, req.GetId())
+func (h *Handler) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
+	tempResponse, err := h.service.Get(ctx, req.GetId())
 	if err != nil {
 		return nil, toStatus(err)
 	}
@@ -54,7 +54,7 @@ func (s *Server) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, 
 	return &response, nil
 }
 
-func (s *Server) Update(ctx context.Context, req *pb.UpdateRequest) (*emptypb.Empty, error) {
+func (h *Handler) Update(ctx context.Context, req *pb.UpdateRequest) (*emptypb.Empty, error) {
 	var name, email *string
 	if req.GetName() != nil {
 		v := req.GetName().GetValue()
@@ -64,14 +64,14 @@ func (s *Server) Update(ctx context.Context, req *pb.UpdateRequest) (*emptypb.Em
 		v := req.GetEmail().GetValue()
 		email = &v
 	}
-	if err := s.service.Update(ctx, req.GetId(), name, email); err != nil {
+	if err := h.service.Update(ctx, req.GetId(), name, email); err != nil {
 		return nil, toStatus(err)
 	}
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Server) Delete(ctx context.Context, req *pb.DeleteRequest) (*emptypb.Empty, error) {
-	if err := s.service.Delete(ctx, req.GetId()); err != nil {
+func (h *Handler) Delete(ctx context.Context, req *pb.DeleteRequest) (*emptypb.Empty, error) {
+	if err := h.service.Delete(ctx, req.GetId()); err != nil {
 		return nil, toStatus(err)
 	}
 	return &emptypb.Empty{}, nil
